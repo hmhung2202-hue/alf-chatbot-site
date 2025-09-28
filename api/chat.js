@@ -5,6 +5,7 @@ export default async function handler(req) {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
     }
+
     const { messages = [] } = await req.json();
 
     const apiKey = process.env.OPENAI_API_KEY;
@@ -24,9 +25,22 @@ export default async function handler(req) {
       })
     });
 
+    if (!r.ok) {
+      const err = await r.text();
+      return new Response(JSON.stringify({ error: `OpenAI error: ${err}` }), { status: 500 });
+    }
+
     const data = await r.json();
-    const answer = data?.choices?.[0]?.message?.content ?? "Xin lỗi, có lỗi xảy ra.";
-    return new Response(JSON.stringify({ answer }), { status: 200, headers: { "Content-Type": "application/json" } });
+    const answer = data?.choices?.[0]?.message?.content ?? null;
+
+    if (!answer) {
+      return new Response(JSON.stringify({ error: "No answer from model" }), { status: 500 });
+    }
+
+    return new Response(JSON.stringify({ answer }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
   } catch (e) {
     return new Response(JSON.stringify({ error: e.message || "Server error" }), { status: 500 });
   }
