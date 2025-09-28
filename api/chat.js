@@ -8,18 +8,7 @@ export default async function handler(req) {
 
     const { messages = [] } = await req.json();
 
-    const apiKey = process.env.OPENAI_API_KEY;export const config = { runtime: "edge" };
-
-export default async function handler(req) {
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
-  }
-  return new Response(JSON.stringify({ answer: "✅ Backend OK (không gọi OpenAI). Bạn có thể thấy tin nhắn này trên UI." }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" }
-  });
-}
-
+    const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Missing OPENAI_API_KEY" }), { status: 500 });
     }
@@ -31,19 +20,18 @@ export default async function handler(req) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4o-mini",    // có thể đổi sang "gpt-4o-mini" (đã dùng) hoặc "o4-mini" nếu tài khoản bạn có quyền
         messages
       })
     });
 
     if (!r.ok) {
-      const err = await r.text();
+      const err = await r.text(); // đưa lỗi OpenAI ra ngoài để UI thấy
       return new Response(JSON.stringify({ error: `OpenAI error: ${err}` }), { status: 500 });
     }
 
     const data = await r.json();
     const answer = data?.choices?.[0]?.message?.content ?? null;
-
     if (!answer) {
       return new Response(JSON.stringify({ error: "No answer from model" }), { status: 500 });
     }
