@@ -8,7 +8,18 @@ export default async function handler(req) {
 
     const { messages = [] } = await req.json();
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY;export const config = { runtime: "edge" };
+
+export default async function handler(req) {
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
+  }
+  return new Response(JSON.stringify({ answer: "✅ Backend OK (không gọi OpenAI). Bạn có thể thấy tin nhắn này trên UI." }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+}
+
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "Missing OPENAI_API_KEY" }), { status: 500 });
     }
